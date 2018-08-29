@@ -18,13 +18,16 @@
     </div>
   </div>
 
+  <button id="createRoom" type="button">create room</button>
+
   <!-- <script src="/js/chat.build.js"></script> -->
   <script src="/js/socket.io.js"></script>
   <script>
-    var socket = io.connect('http://localhost:8080');
+    var socket = io.connect('http://localhost:8081');
     var screen = document.querySelector('.chat-screen');
     var input = document.querySelector('.chat-text');
-    
+    var createRoomBtn = document.querySelector('#createRoom');    
+
     socket.on('broadcast', function(msg) {
       screen.appendChild(addChatMsg(msg, true));
     });
@@ -32,7 +35,19 @@
     socket.on('disconnect', function(id) {
       screen.appendChild(addChatMsg(id + ' 님이 퇴장하셨습니다.', true));
     });
+
+    socket.on('success create room', function() {
+      console.log('success create room');
+    });
+
+    socket.on('failed create room', function(msg) {
+      console.log(msg);
+    });
     
+
+    createRoomBtn.addEventListener('click', function() {
+      socket.emit('createRoom', { title: 'room1', id: socket.id });
+    });
     input.addEventListener('keyup', function(e) {
       if(e.keyCode === 13) {
         var value = e.target.value;
@@ -58,7 +73,4 @@
     }
   </script>
 </body>
-<script>
-  chatText.style.color = 'red';
-</script>
 </html>
