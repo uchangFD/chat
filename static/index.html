@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Chat Example</title>
+  <link rel="stylesheet" href="/css/stylesheets.css">
+  
+</head>
+<body>
+  <div id="chat">
+    <ul class="chat-screen"></ul>
+    <div class="chat-func-wrapper">
+      <label>
+        <input type="text" name="txt" class="chat-text" />
+      </label>
+    </div>
+  </div>
+
+  <!-- <script src="/js/chat.build.js"></script> -->
+  <script src="/js/socket.io.js"></script>
+  <script>
+    var socket = io.connect('http://localhost:8080');
+    var screen = document.querySelector('.chat-screen');
+    var input = document.querySelector('.chat-text');
+    
+    socket.on('broadcast', function(msg) {
+      screen.appendChild(addChatMsg(msg, true));
+    });
+    
+    socket.on('disconnect', function(id) {
+      screen.appendChild(addChatMsg(id + ' 님이 퇴장하셨습니다.', true));
+    });
+    
+    input.addEventListener('keyup', function(e) {
+      if(e.keyCode === 13) {
+        var value = e.target.value;
+        
+        screen.appendChild(addChatMsg(value));
+        socket.emit('message', value);
+
+        e.target.value = '';
+      }
+    });
+    
+    function addChatMsg(msg, isOthers) {
+      var chat = document.createElement('li');
+
+      isOthers && setOthersStyle(chat);
+      chat.innerText = msg;
+      
+      return chat;
+    }
+
+    function setOthersStyle(el) {
+      el.classList.add('others');
+    }
+  </script>
+</body>
+<script>
+  chatText.style.color = 'red';
+</script>
+</html>

@@ -1,0 +1,50 @@
+#chat {
+  position: fixed; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #aeaeae;
+  border-radius: 3px;
+
+  .chat-screen {
+    margin: 0;
+    padding: 0;
+    height: 300px;
+    max-height: 450px;
+    background-color: lightblue;
+    list-style: none;
+    text-align: right;
+
+    li {
+      padding: 0 10px;
+      
+      &:nth-child(even) {
+        background-color: #fff;
+      }
+      &:nth-child(odd) {
+        background-color: #bbb;
+      }
+
+      &.others {
+        text-align: left;
+      }
+    }
+  }
+  .chat-func-wrapper {
+    position: relative;
+    
+    .chat-text,
+    .chat-submit-btn {
+      border: none;
+      padding: 0;
+      background-color: #fff;
+      border: 1px solid #999;
+    }
+  
+    .chat-text {
+      padding: 5px 0 5px 7px;
+      width: 200px;
+    }
+  }
+}
+
