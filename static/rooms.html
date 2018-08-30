@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Room example</title>
+</head>
+<body>
+  
+  <div id="room">
+    <input class="room-input" type="text" />
+    <button class="create-room-btn" type="button">생성</button>
+    <ul class="room-list"></ul>
+  </div>
+  <div id="chat">
+    <ul class="screen"></ul>
+    <input class="chat-input" type="text" />
+  </div>
+  <script src="/js/socket.io.js"></script>
+
+  <script>
+    var socket = io.connect('http://localhost:8081/rooms');
+
+    var roomList = document.querySelector('.room-list');
+    var roomInput = document.querySelector('.room-input');
+    var createRoomBtn = document.querySelector('.create-room-btn');
+    console.log('????');
+  </script>
+
+  <script>
+    socket.on('connect', function() {
+      socket.emit('user connect', prompt('닉네임을 입력하세요.'), socket.id);
+    });
+    socket.on('getRoomList', function(rooms) {
+      
+      console.log('get roomList');
+
+      roomList.innerHTML = '';
+
+      for(var i = 0; i < rooms.length; i++) {
+        var roomItem = document.createElement('li');
+        
+        roomItem.innerText = rooms[i];
+        roomList.appendChild(roomItem);
+      }
+    });
+    socket.on('update chat', function(chat) {
+      console.log(chat);
+    });
+    socket.on('nickname', function(nickname) {
+      console.log(nickname);
+    })
+
+  </script>
+
+  <script>
+
+    createRoomBtn.addEventListener('click', function() {
+      var room = roomInput.value;
+      console.log(room);
+      if(room.length === 0) { return; }
+
+      socket.emit('createRoom', room);
+    });
+    
+    
+  </script>
+</body>
+</html>
