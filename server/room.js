@@ -1,54 +1,62 @@
 'use strict';
 
-module.exports = class Room {
+class Room {
 
   constructor() {
     this.rooms = [];
   }
 
-  hasRoom(title) {
+  hasRoom(room) {
     return !!this.rooms.find(_room => {
-      return _room.title === title;
+      return _room.room === room;
     })
   }
 
-  addRoom(room) {
+  addRoom(roomInfo) {
 
-    if(this.hasRoom(room.title)) {
+    if(this.hasRoom(roomInfo.room)) {
       return false;
     }
 
-    this.rooms.push(room);
+    this.rooms.push(roomInfo);
 
     return true;
   }
 
   updateRoom(room, updateInfo) {
     
-    if(!this.hasRoom(room.title)) {
+    if(!this.hasRoom(room)) {
       return false;
     }
 
     this.rooms = this.rooms.map(_room => {
       
-      if(_room === room) {
-        return Object.assign(_room, room);
+      if(_room.room === room) {
+        return Object.assign(_room, updateInfo);
       }
 
       return _room;
-    })
+    });
 
     return true;
   }
 
-  deleteRoom(room) {
+  removeRoom(room) {
 
     if(!this.hasRoom(room)) {
       return false;
     }
 
-    this.rooms = this.rooms.filter(_room => { _room.title !== room.title });
+    this.rooms = this.rooms.filter(_room => { _room.room !== room });
 
     return true;
   }
+
+  getRoomList() {
+    return this.rooms.map(_room => _room.room);
+  }
 }
+
+const rooms = new Room();
+
+module.exports = rooms;
