@@ -9,68 +9,160 @@
   
 </head>
 <body>
-  <div id="chat">
-    <ul class="chat-screen"></ul>
-    <div class="chat-func-wrapper">
-      <label>
-        <input type="text" name="txt" class="chat-text" />
-      </label>
+  <header id="header">
+    <span class="nickname"></span>
+    <button type="button" class="create-room">방생성</button>
+  </header>
+  <div class="wrapper">
+    <div id="chat">
+      <ul class="chat-list"></ul>
+      <input type="text" class="chat-input">
+    </div>
+    <div class="lists">
+      <ul class="user-list"></ul>
+      <ul class="room-list"></ul>
     </div>
   </div>
 
-  <button id="createRoom" type="button">create room</button>
-
-  <!-- <script src="/js/chat.build.js"></script> -->
   <script src="/js/socket.io.js"></script>
   <script>
-    var socket = io.connect('http://localhost:8081');
-    var screen = document.querySelector('.chat-screen');
-    var input = document.querySelector('.chat-text');
-    var createRoomBtn = document.querySelector('#createRoom');    
+    var socket = io.connect('http://localhost:8080');
+    var nicknameEl = document.querySelector('.nickname');
+    var createRoomEl = document.querySelector('.create-room');
+    var chatInputEl = document.querySelector('.chat-input');
+    var roomListEl = document.querySelector('.room-list');
+    var userListEl = document.querySelector('.user-list');
+    var chatListEl = document.querySelector('.chat-list');
 
-    socket.on('broadcast', function(msg) {
-      screen.appendChild(addChatMsg(msg, true));
+    socket.on('connect', function() {
+      socket.emit('user connect', prompt('닉네임을 입력해주세요.'), socket.id);
     });
     
-    socket.on('disconnect', function(id) {
-      screen.appendChild(addChatMsg(id + ' 님이 퇴장하셨습니다.', true));
-    });
+    socket.once('init room', function(rooms) {
 
-    socket.on('success create room', function() {
-      console.log('success create room');
-    });
+      for(var i = 0; i < rooms.length; i++) {
+        var room = rooms[i];
+        roomListEl.appendChild(createRoomItem(room));
+      }
+    })
 
-    socket.on('failed create room', function(msg) {
-      console.log(msg);
+    socket.on('nickname', function(nickname) {
+      console.log('nickname', nickname);
+      nicknameEl.innerText = nickname;
     });
     
-
-    createRoomBtn.addEventListener('click', function() {
-      socket.emit('createRoom', { title: 'room1', id: socket.id });
+    socket.on('change nickname', function(newNickname) {
+      console.log('newNickname: ', newNickname);
     });
-    input.addEventListener('keyup', function(e) {
+
+    socket.on('can not create room', function(msg) {
+      alert(msg);
+    });
+
+    socket.on('message', function(username, msg) {
+      console.log(username + ': ' + msg);
+      chatListEl.appendChild(createChat(msg));
+    });
+    
+    socket.on('success create room', function(room) {
+      roomListEl.appendChild(createRoomItem(room));
+    });
+
+    createRoomEl.addEventListener('click', function() {
+
+      var room = prompt('방 제목을 입력해주세요.');
+      
+      socket.emit('createRoom', room);
+    });
+
+    roomListEl.addEventListener('click', function(e) {
+      var target = e.target;
+      var room = e.target.value;
+      var nickname = nicknameEl.value;
+
+      socket.emit('join', room, nickname, confirm('입장하시겠습니까?'));
+    })
+
+    chatInputEl.addEventListener('keyup', function(e) {
+
       if(e.keyCode === 13) {
-        var value = e.target.value;
-        
-        screen.appendChild(addChatMsg(value));
-        socket.emit('message', value);
 
+        var value = e.target.value;
+
+        socket.emit('message', value);
         e.target.value = '';
       }
     });
-    
-    function addChatMsg(msg, isOthers) {
+
+    function createRoomItem(room) {
+      var roomItem = document.createElement('li');
+
+      roomItem.innerText = room;
+
+      return roomItem;
+    }
+    function createChat(chat) {
       var chat = document.createElement('li');
 
-      isOthers && setOthersStyle(chat);
-      chat.innerText = msg;
-      
+      chat.innerText = chat;
+
       return chat;
     }
 
-    function setOthersStyle(el) {
-      el.classList.add('others');
-    }
+    // var screen = document.querySelector('.chat-screen');
+    // var input = document.querySelector('.chat-text');
+    // var createRoomBtn = document.querySelector('#createRoomBtn');    
+    // var roomTitle = document.querySelector('#roomTitle');    
+
+    // socket.on('broadcast', function(msg) {
+    //   screen.appendChild(addChatMsg(msg, true));
+    // });
+    
+    // socket.on('disconnect', function(id) {
+    //   screen.appendChild(addChatMsg(id + ' 님이 퇴장하셨습니다.', true));
+    // });
+
+    // socket.on('success create room', function() {
+    //   console.log('success create room');
+    // });
+
+    // socket.on('failed create room', function(msg) {
+    //   console.log(msg);
+    // });
+
+    // createRoomBtn.addEventListener('click', function() {
+
+    //   var value = roomTitle.value;
+      
+    //   if(!value) { 
+    //     return; 
+    //   }
+
+    //   socket.emit('createRoom', { title: value, id: socket.id });
+    // });
+    // input.addEventListener('keyup', function(e) {
+    //   if(e.keyCode === 13) {
+    //     var value = e.target.value;
+        
+    //     screen.appendChild(addChatMsg(value));
+    //     socket.emit('message', value);
+
+    //     e.target.value = '';
+    //   }
+    // });
+    
+    // function addChatMsg(msg, isOthers) {
+    //   var chat = document.createElement('li');
+
+    //   isOthers && setOthersStyle(chat);
+    //   chat.innerText = msg;
+      
+    //   return chat;
+    // }
+
+    // function setOthersStyle(el) {
+    //   el.classList.add('others');
+    // }
   </script>
 </body>
 </html>
