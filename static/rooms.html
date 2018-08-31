@@ -5,36 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Room example</title>
+  <link rel="stylesheet" href="/css/stylesheets.css">
 </head>
-<body>
+<body class="room-example">
   
-  <div id="room">
-    <input class="room-input" type="text" />
-    <button class="create-room-btn" type="button">생성</button>
-    <ul class="room-list"></ul>
-  </div>
-  <div id="chat">
-    <ul class="screen"></ul>
-    <input class="chat-input" type="text" />
+  
+  <div class="wrapper">
+    <div id="info">
+      닉네임: <span class="nickname">Nickname</span>
+    </div>
+    <div class="contents">
+      <div id="chat">
+        <ul class="screen"></ul>
+        <input class="chat-input" type="text" disabled/>
+      </div>
+      <div id="room">
+        <input class="room-input" type="text" />
+        <button class="create-room-btn" type="button">생성</button>
+        <ul class="room-list"></ul>
+      </div>
+    </div>
   </div>
   <script src="/js/socket.io.js"></script>
 
   <script>
-    var socket = io.connect('http://localhost:8081/rooms');
+    var socket = io.connect('http://localhost:8080/rooms');
 
     var roomList = document.querySelector('.room-list');
     var roomInput = document.querySelector('.room-input');
     var createRoomBtn = document.querySelector('.create-room-btn');
-    console.log('????');
+    
+    var chatInput = document.querySelector('.chat-input');
+    var chatScreen = document.querySelector('.screen');
+
+    var nickname = document.querySelector('.nickname');
+
+    var username = '';
   </script>
 
   <script>
     socket.on('connect', function() {
-      socket.emit('user connect', prompt('닉네임을 입력하세요.'), socket.id);
+
+      var nickname = prompt('닉네임을 입력하세요.');
+
+      nickname === '' && (nickname = 'Guest');
+      socket.emit('user connect', nickname, socket.id);
     });
     socket.on('getRoomList', function(rooms) {
-      
-      console.log('get roomList');
 
       roomList.innerHTML = '';
 
@@ -45,25 +62,70 @@
         roomList.appendChild(roomItem);
       }
     });
-    socket.on('update chat', function(chat) {
-      console.log(chat);
+    socket.on('toggle chat', function(isEnable) {
+      chatInput.disabled  = isEnable;
     });
-    socket.on('nickname', function(nickname) {
-      console.log(nickname);
-    })
+    socket.on('nickname', function(_username) {
+      username = _username;
+      nickname.innerText = username;
+    });
+    socket.on('message others', function(username, msg) {
+      chatScreen.appendChild(createMsgEl(msg, { username: username, msg: msg }));
+    });
+    socket.on('message me', function(msg) {
+      chatScreen.appendChild(createMsgEl(msg));
+    });
 
+    function createMsgEl(msg, others) {
+      var msgEl = document.createElement('li');
+      
+      if(others) {
+        msgEl.innerHTML = others.username + '<br>' + msg;
+        msgEl.classList.add('others');
+      } else {
+        msgEl.innerText = msg
+      }
+      
+      return msgEl;
+    }
   </script>
 
   <script>
 
     createRoomBtn.addEventListener('click', function() {
       var room = roomInput.value;
-      console.log(room);
+
       if(room.length === 0) { return; }
 
       socket.emit('createRoom', room);
     });
     
+    roomList.addEventListener('click', function(e) {
+
+      var target = e.target;
+
+      if(target.nodeName === 'LI') {
+
+        var room = target.innerText;
+
+        socket.emit('join', room, username, confirm('입장하시겠습니까?'));
+      }
+    });
+    chatInput.addEventListener('keyup', function(e) {
+
+      if(e.keyCode === 13) {
+
+        var value = e.target.value;
+  
+        if(value === '') {
+          return;
+        }
+        
+        socket.emit('message', value);
+        e.target.value = '';
+      }
+      
+    });
     
   </script>
 </body>

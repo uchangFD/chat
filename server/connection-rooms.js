@@ -4,11 +4,9 @@ const rooms = require('./room.js');
 const users = require('./users.js');
 
 module.exports = function(io, socket) {
-  // const io = io.of('/rooms');
-
-  io.sockets.emit('getRoomList', rooms.getRoomList());
-
-  console.log(io.sockets);
+  
+  io.of('/rooms').emit('getRoomList', rooms.getRoomList());
+  
   // 유저 입장.
   socket.on('user connect', (username, id) => {
     
@@ -17,7 +15,7 @@ module.exports = function(io, socket) {
 
     users.addUser({ id, username });
 
-    io.to(socket.uid).emit('nickname', socket.username);
+    io.of('/rooms').to(socket.uid).emit('nickname', username);
   });
 
 
@@ -25,7 +23,7 @@ module.exports = function(io, socket) {
   socket.on('createRoom', (room) => {
 
     if(rooms.hasRoom(room)) {
-      io.to(socket.uid).emit('can not create room', 'Already exist room');
+      io.of('/rooms').to(socket.uid).emit('can not create room', 'Already exist room');
       return;
     }
     const username = socket.username;
@@ -34,14 +32,11 @@ module.exports = function(io, socket) {
     socket.room = room;
     
     socket.join(room);
-    console.log('들어가니?');
-    console.log(rooms.getRoomList());
-    // socket.emit('update chat', 'SERVER', room + '방에 연결되었습니다.');
-    // socket.emit('success create room', room);
-    io.emit('getRoomList', rooms.getRoomList());
-    socket.broadcast.to(room).emit('update chat', username + '님이 참가하였습니다.');
+    io.of('/rooms').to(socket.uid).emit('toggle chat', false);
 
     rooms.addRoom({ room, username });
+    
+    io.of('/rooms').emit('getRoomList', rooms.getRoomList());
   });
 
   // 유저 참가
@@ -55,18 +50,18 @@ module.exports = function(io, socket) {
     socket.username = username;
 
     socket.join(room);
-    socket.emit('update chat', 'SERVER', room + '방에 연결되었습니다.');
-    socket.broadcast.to(room).emit('update chat', 'SERVER', username + '님이 입장하셨습니다.');
+    io.of('/rooms').to(socket.uid).emit('toggle chat', false);
+
+    socket.broadcast.to(room).emit('update chat', username + '님이 입장하셨습니다.');
 
   });
   
   // 메시지 보내기
-  socket.on('message', (data) => {
+  socket.on('message', (msg) => {
     
-    io.sockets.in(socket.room).emit('message', socket.username, data);  
+    socket.broadcast.to(socket.room).emit('message others', socket.username, msg);
+    io.of('/rooms').to(socket.id).emit('message me', msg);
   });
-
-  // 메시지 브로드캐스팅
 
   // 방 바꾸기
   socket.on('switchRoom', (newRoom) => {
@@ -95,10 +90,10 @@ module.exports = function(io, socket) {
     const username = socket.username;
     const room = socket.room;
 
-    rooms.removeRoom(room);
     // 모든 소켓 세션에 이미터를 작동
     io.sockets.emit('update user', username);
-    socket.broadcast.emit('update chat', 'SERVER', socket.username + '님이 연결을 끊으셨습니다.');
+    socket.broadcast.to(socket.room).emit('message others', socket.username, '님이 연결을 끊으셨습니다. [Server]');
+    rooms.removeRoom(room);
     socket.leave(room);
   });
 

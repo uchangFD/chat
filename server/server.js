@@ -11,7 +11,7 @@ const route = require('./route.js');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
-app.set('port', 8081);
+app.set('port', 8080);
 app.use(express.static(path.join(__dirname, '..', 'static')));
 app.use('/', route);
 server.listen(app.get('port'), function() {
