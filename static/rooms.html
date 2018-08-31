@@ -70,21 +70,34 @@
       nickname.innerText = username;
     });
     socket.on('message others', function(username, msg) {
-      chatScreen.appendChild(createMsgEl(msg, { username: username, msg: msg }));
+      var msgEl = createMsgEl(msg, { username: username, msg: msg });
+
+      chatScreen.appendChild(msgEl);
+      chatScreen.scrollTop = chatScreen.scrollHeight;
     });
     socket.on('message me', function(msg) {
-      chatScreen.appendChild(createMsgEl(msg));
+      var msgEl = createMsgEl(msg);
+
+      chatScreen.appendChild(msgEl);
+      chatScreen.scrollTop = chatScreen.scrollHeight;
     });
 
     function createMsgEl(msg, others) {
       var msgEl = document.createElement('li');
+      var spanEl = document.createElement('span');
+      
+      spanEl.classList.add('chat-text');
       
       if(others) {
-        msgEl.innerHTML = others.username + '<br>' + msg;
+        
+        spanEl.innerHTML = '<span class="chat-nickname">' + others.username + '</span>' + msg;
         msgEl.classList.add('others');
+
       } else {
-        msgEl.innerText = msg
+        spanEl.innerText = msg;
       }
+      msgEl.appendChild(spanEl);
+
       
       return msgEl;
     }

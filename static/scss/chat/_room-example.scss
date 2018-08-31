@@ -1,5 +1,6 @@
 body.room-example {
   
+  background-color: #ececec;
   .wrapper {
     padding-top: 100px;
     margin: 0 auto;
@@ -12,8 +13,13 @@ body.room-example {
   
   #info {
     margin-bottom: 20px;
-    border-bottom: 3px solid #000;
+    padding: 20px;
+    border-bottom: 1px solid #000;
+    // border-top: 1px solid #000;
     border-bottom-right-radius: 10em 10em;
+    border-bottom-left-radius: 10em 10em;
+    border-top-left-radius: 10em 10em;
+    border-top-right-radius: 10em 10em;
   }
 
   .contents {
@@ -101,6 +107,7 @@ body.room-example {
       padding: 0 7px;
       margin: 0;
       height: 300px;
+      overflow-y: auto;
       list-style: none;
       font-size: 22px;
     }
@@ -114,6 +121,22 @@ body.room-example {
 
       &:focus {
         animation: border .5s ease-in-out infinite;
+      }
+    }
+
+    .chat-text {
+      display: inline-block;
+      padding: 5px 10px;
+      border-bottom: 1px solid #000;
+      border-top: 1px solid #000;
+      border-bottom-right-radius: 10em 10em;
+      border-bottom-left-radius: 10em 10em;
+      border-top-left-radius: 10em 10em;
+      border-top-right-radius: 10em 10em;
+
+      .chat-nickname {
+        display: block;
+        margin-bottom: 5px;
       }
     }
   }
